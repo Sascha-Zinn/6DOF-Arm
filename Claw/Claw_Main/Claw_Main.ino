@@ -1,8 +1,13 @@
+// Written by Sascha Zinn
+// Github: https://github.com/Sascha-Zinn/6DOF-Arm
+// Written for DIYMORE 6-DOF Robot Arm | Arduino MEGA2560 | PCA9685 Servo Driver with 10A power supply
+// Order of servos and names (starting from base, going towards claw): Base, Neck, Shoulder, Elbow, Wrist, Claw (Connected, in that order, to pins 0 to 5 on the servo driver)
+
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
-// Convert Angle to pulse
+// Convert Angle to pulse (Also maps the miniumum and maximum possible angles to the min and max pulse)
 int angleBase(int angle) {
   int pulse = map(angle, 0, 180, 100, 600);
   return pulse;
@@ -39,13 +44,11 @@ int clawPos;
 int servoNumber, destAngle;
 int servoPos;
 
-
 void setup() {
   Serial.begin(9600);
   pwm.begin();
   pwm.setPWMFreq(60);  
   yield();
-
 
   // Set default servo position
   Serial.println("Initializing Servos...");
@@ -56,21 +59,7 @@ void setup() {
   pwm.setPWM(4, 0, angleWrist(180)); delay(500); wristPos = 180;
   pwm.setPWM(5, 0, angleClaw(90)); delay(500); clawPos = 90;
   delay (2000);
-
-
 }
-
-void setServoPulse(uint8_t n, double pulse) {
-  double pulselength;
-  pulselength = 1000000;   // 1,000,000 us per second
-  pulselength /= 60;   // 60 Hz
-  pulselength /= 4096;  // 12 bits of resolution
-  pulse *= 1000;
-  pulse /= pulselength;
-  Serial.println(pulse);
-  pwm.setPWM(n, 0, pulse);
-}
-
 
 void loop()
 {
@@ -231,7 +220,17 @@ void moveClaw(int destAngle){
     Serial.println(servoPos);
   }
 }
-
+// Covert pulse lengths to usable values
+void setServoPulse(uint8_t n, double pulse) {
+  double pulselength;
+  pulselength = 1000000;   // 1,000,000 us per second
+  pulselength /= 60;   // 60 Hz
+  pulselength /= 4096;  // 12 bits of resolution
+  pulse *= 1000;
+  pulse /= pulselength;
+  Serial.println(pulse);
+  pwm.setPWM(n, 0, pulse);
+}
 //ResetServos
 void ResetServos()
 {
